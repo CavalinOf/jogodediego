@@ -6,25 +6,60 @@
 <title>Show do Milhão</title>
 <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <style>
+:root{--g:#ffcf4a;--g2:#ff9d2e}
 *{box-sizing:border-box}
-body{margin:0;font-family:system-ui,sans-serif;background:radial-gradient(circle at top,#1b2a8f,#050a30);color:#fff;min-height:100vh;display:flex;justify-content:center;padding:16px}
-#app{width:100%;max-width:640px}
-h1{text-align:center;color:#ffd24a}
-.card{background:#0b1450cc;border:2px solid #ffd24a55;border-radius:16px;padding:16px;margin:12px 0}
-input,button{font:inherit;padding:12px;border-radius:10px;border:2px solid #ffd24a;width:100%;margin:6px 0}
-input{background:#fff;color:#111}
-button{background:#102080;color:#fff;cursor:pointer;text-align:left}
-button:hover:not(:disabled){background:#1c33c8}
-button:disabled{opacity:.6;cursor:default}
-.gold{background:#ffd24a;color:#111;font-weight:700;text-align:center;font-size:20px}
-.gold:hover:not(:disabled){background:#ffe07a}
-.opt.ok{background:#1a9c3f;opacity:1}.opt.bad{background:#c0222e;opacity:1}
-.pl{display:flex;justify-content:space-between;align-items:center;margin:8px 0}
-.bar{height:8px;background:#fff2;border-radius:6px;overflow:hidden;flex:1;margin:0 10px}
-.bar i{display:block;height:100%;background:#ffd24a}
-.turn{color:#ffd24a;font-weight:700}.off{opacity:.4}
-.q{font-size:20px;margin:8px 0 12px}.tm{float:right;font-weight:700}
-.c{text-align:center}
+body{margin:0;font-family:'Segoe UI',system-ui,sans-serif;color:#fff;min-height:100vh;padding:16px;display:flex;justify-content:center;background:radial-gradient(ellipse at 50% -10%,#3a4fd8 0,#16208f 35%,#060b3a 75%) fixed}
+#app{width:100%;max-width:960px}
+.logo{text-align:center;margin:6px 0 10px;font-weight:900;letter-spacing:2px;font-size:clamp(26px,7vw,42px);background:linear-gradient(#fff3b0,var(--g),var(--g2));-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 2px 8px #0009)}
+.logo small{display:block;font-size:12px;letter-spacing:6px;-webkit-text-fill-color:#bcd0ff}
+.card{background:linear-gradient(160deg,#16239acc,#0a1060cc);border:1.5px solid #ffcf4a66;border-radius:20px;padding:18px;margin:14px 0;box-shadow:0 10px 30px #0006,inset 0 1px #ffffff22}
+h3{margin:0 0 10px;color:var(--g);font-size:12px;letter-spacing:2px;text-transform:uppercase}
+input{font:inherit;font-size:18px;text-align:center;border:0;border-radius:14px;padding:12px;width:100%;background:#fff;color:#111;margin:6px 0}
+.btn{font:inherit;width:100%;border:0;border-radius:14px;padding:14px;cursor:pointer;font-weight:800;font-size:19px;letter-spacing:1px;background:linear-gradient(#ffe27a,var(--g2));color:#2a1a00;box-shadow:0 4px 0 #b36a00,0 8px 18px #0006;margin-top:6px}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 #b36a00}
+.btn.off{background:linear-gradient(#5a6ad6,#3846b8);color:#fff;box-shadow:0 4px 0 #1b2680,0 8px 18px #0006}
+.lnk{background:none;border:0;color:#bcd0ff;text-decoration:underline;cursor:pointer;font:inherit;font-size:13px;display:block;margin:8px auto}
+.row{display:flex;align-items:center;gap:12px;margin:10px 0}
+.grow{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.av{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-style:normal;flex:none;border:2px solid #fff7;object-fit:cover}
+.av.s{width:26px;height:26px;font-size:12px}.av.big{width:96px;height:96px;font-size:40px}
+.pill{padding:4px 12px;border-radius:99px;font-size:12px;font-weight:700;background:#ffffff22}
+.pill.ok{background:#1fb457}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font:inherit;font-size:14px;padding:8px 13px;border-radius:99px;border:1.5px solid #ffffff44;background:#ffffff14;color:#fff;cursor:pointer}
+.chip.on{background:var(--g);color:#2a1a00;border-color:var(--g);font-weight:700}
+.chip:disabled{cursor:default}
+.game{display:grid;grid-template-columns:1fr 290px;gap:14px;align-items:start}
+@media(max-width:760px){.game{grid-template-columns:1fr}.side{order:-1}}
+.pr{display:flex;align-items:center;gap:10px;padding:8px;border-radius:14px;border:2px solid transparent;margin:6px 0;transition:.3s}
+.pr.act{border-color:var(--g);background:#ffcf4a18;box-shadow:0 0 16px #ffcf4a55}
+.pr.off{opacity:.4}
+.nm{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sc{font-size:24px;color:var(--g)}
+.bar{height:7px;background:#ffffff25;border-radius:9px;overflow:hidden;margin-top:4px}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--g),var(--g2));transition:width .6s}
+.tag{display:flex;justify-content:space-between;gap:8px;font-size:13px;color:#cdd8ff;align-items:center;flex-wrap:wrap}
+.who{display:flex;align-items:center;gap:6px}
+.timer{height:7px;background:#ffffff25;border-radius:9px;overflow:hidden;margin:10px 0 14px}
+#tb{height:100%;width:100%;background:linear-gradient(90deg,#3ddc84,var(--g));transition:width .3s linear}
+.qbox{background:linear-gradient(#1b2bb5,#0e1a80);border:2px solid var(--g);border-radius:50px/28px;padding:20px 26px;text-align:center;font-size:clamp(17px,4.6vw,22px);font-weight:600;margin:4px 0 16px;box-shadow:0 0 24px #ffcf4a33;animation:in .4s}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:520px){.opts{grid-template-columns:1fr}}
+.opt{display:flex;gap:10px;text-align:left;font:inherit;color:#fff;background:linear-gradient(#1b2bb5,#0e1a80);border:2px solid #ffffff44;border-radius:40px/24px;padding:12px 18px;cursor:pointer}
+.opt b{color:var(--g)}
+.opt:hover:not(:disabled){border-color:var(--g);background:linear-gradient(#2a3bd0,#16239a)}
+.opt:disabled{cursor:default;opacity:.8}
+.opt.ok{background:linear-gradient(#25c45f,#13823a);border-color:#9bffb9;opacity:1;animation:pop .5s}
+.opt.bad{background:linear-gradient(#e0414c,#9a1620);border-color:#ffb0b6;opacity:1;animation:shake .4s}
+.opt.ok b,.opt.bad b{color:#fff}
+.msg{text-align:center;font-weight:800;font-size:20px;margin-top:14px}
+.c{text-align:center}.mut{color:#b9c6ff;font-size:13px}
+.tr{font-size:72px;animation:pop 1s infinite}
+.cf{position:fixed;top:-40px;font-size:26px;pointer-events:none;animation:fall linear forwards}
+@keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes pop{50%{transform:scale(1.06)}}
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+@keyframes fall{to{transform:translateY(115vh) rotate(540deg)}}
 </style>
 </head>
 <body>
@@ -33,20 +68,84 @@ button:disabled{opacity:.6;cursor:default}
 <script src="questions2.js"></script>
 <script>
 const $ = s => document.querySelector(s);
-const HID = 'smilhao-global-v1', WIN = 25, TIME = 30, MAX = 4;
+const HID = 'smilhao-global-v1', PTS = 2, TIME = 30, MAX = 4;
+const TH = { geo: ['🌍', 'Geografia'], bra: ['🇧🇷', 'Brasil'], cie: ['🔬', 'Ciências'], his: ['🏛️', 'História'], art: ['🎨', 'Cultura e Artes'], esp: ['⚽', 'Esportes'], mat: ['➗', 'Matemática'], cur: ['💡', 'Curiosidades'] };
+const KEYS = Object.keys(TH), cnt = k => Q.filter(q => q[4] === k).length;
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const sv = (k, v) => { try { localStorage.setItem(k, v) } catch (e) {} };
-const ld = k => { try { return localStorage.getItem(k) || '' } catch (e) { return '' } };
-let peer, conns = {}, isHost = false, hc = null, S = null, cur = null, me = '', name = '';
-let used = new Set(), timer, endAt = 0, lastN = -1, pend = [];
+const ld = k => { try { return JSON.parse(localStorage.getItem(k)) } catch (e) { return null } };
+const ok = p => typeof p === 'string' && p.startsWith('data:image/') && p.length < 20000;
+const hue = n => [...n].reduce((a, c) => a * 31 + c.charCodeAt(0), 7) % 360;
+const av = (n, p, s) => ok(p) ? `<img class="av ${s || ''}" src="${p}">` : `<i class="av ${s || ''}" style="background:hsl(${hue(n)} 65% 45%)">${esc([...n][0].toUpperCase())}</i>`;
+const logo = '<div class="logo">SHOW DO MILHÃO<small>ENTRE AMIGOS</small></div>';
 
-/* ---------- conexão: o 1º a abrir vira o "host" técnico; os demais entram nele ---------- */
-function enter() {
-  name = $('#nm').value.trim();
-  if (!name) return alert('Digite seu nome');
-  sv('nm', name); render(); boot();
+let P = ld('sm_p'), RK = ld('sm_rk') || {}, me = P ? P.id : '', editing = false, draft = { name: '', photo: '' }, started = false;
+let peer, conns = {}, isHost = false, hc = null, S = null, cur = null;
+let used = new Set(), timer, endAt = 0, lastN = -1, lastPh = '', pend = [];
+
+/* ---------- ranking de vitórias (salvo no aparelho e sincronizado entre quem joga junto) ---------- */
+function rkMerge(b) {
+  let ch = false;
+  for (const id in b) {
+    const x = b[id], a = RK[id], w = +x.w || 0, t = +x.t || 0, n = String(x.n || '?').slice(0, 14), p = ok(x.p) ? x.p : '';
+    if (!a) { RK[id] = { n, p, w, t }; ch = true; }
+    else { if (w > a.w) { a.w = w; ch = true; } if (t > a.t) { a.n = n; a.p = p; a.t = t; ch = true; } }
+  }
+  if (ch) sv('sm_rk', JSON.stringify(RK));
+  return ch;
 }
+const bk = () => { Object.values(conns).forEach(c => c.open && c.send({ rk: RK })); render(); };
+
+/* ---------- cadastro ---------- */
+function reg() {
+  $('#app').innerHTML = logo + `<div class="card c"><h3>${P ? 'Editar perfil' : 'Cadastro'}</h3>
+    <label style="cursor:pointer;display:inline-block">${av(draft.name || '?', draft.photo, 'big')}<input type="file" accept="image/*" style="display:none" onchange="pickPhoto(this)"></label>
+    <div class="mut">Toque no círculo para escolher uma foto (opcional)</div>
+    <input id="nm" placeholder="Seu nome" maxlength="14" value="${esc(draft.name)}">
+    <button class="btn" onclick="saveProf()">SALVAR E ENTRAR</button>
+    ${P ? '<button class="lnk" onclick="editing=false;render()">Cancelar</button>' : ''}
+    <div class="mut">Seu cadastro fica salvo neste aparelho.</div></div>`;
+}
+function pickPhoto(inp) {
+  const f = inp.files[0]; if (!f) return;
+  draft.name = $('#nm').value;
+  const r = new FileReader();
+  r.onload = () => {
+    const im = new Image();
+    im.onload = () => {
+      const c = document.createElement('canvas'), s = Math.min(im.width, im.height);
+      c.width = c.height = 80;
+      c.getContext('2d').drawImage(im, (im.width - s) / 2, (im.height - s) / 2, s, s, 0, 0, 80, 80);
+      draft.photo = c.toDataURL('image/jpeg', .75); reg();
+    };
+    im.src = r.result;
+  };
+  r.readAsDataURL(f);
+}
+function editProf() { draft = { name: P.name, photo: P.photo }; editing = true; reg(); }
+function saveProf() {
+  const n = $('#nm').value.trim();
+  if (!n) return alert('Digite seu nome');
+  const id = P ? P.id : (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2) + Date.now().toString(36));
+  P = { id, name: n.slice(0, 14), photo: draft.photo || '', t: Date.now() };
+  sv('sm_p', JSON.stringify(P)); me = id; editing = false;
+  rkMerge({ [id]: { n: P.name, p: P.photo, w: 0, t: P.t } });
+  if (!started) boot();
+  else if (isHost) setProf(id, P.name, P.photo);
+  else if (hc && hc.open) hc.send({ t: 'prof', n: P.name, p: P.photo });
+  render();
+}
+function setProf(id, n, p) {
+  n = String(n).slice(0, 14); p = ok(p) ? p : '';
+  const x = S.players.find(q => q.id === id) || pend.find(q => q.id === id);
+  if (x) { x.name = n; x.photo = p; }
+  rkMerge({ [id]: { n, p, w: 0, t: Date.now() } });
+  send(); bk();
+}
+
+/* ---------- conexão: o 1º a abrir vira o "host"; os demais entram nele ---------- */
 function boot() {
+  started = true;
   try { peer && peer.destroy() } catch (e) {}
   conns = {}; hc = null; S = null; render();
   peer = new Peer(HID);
@@ -54,9 +153,9 @@ function boot() {
   peer.on('error', e => e.type === 'unavailable-id' ? clientUp() : setTimeout(boot, 2000 + Math.random() * 2000));
 }
 function hostUp() {
-  isHost = true; me = 'host'; pend = [];
-  S = { phase: 'lobby', n: 0, turn: 0, wait: [], players: [{ id: 'host', name, score: 0, on: true, rd: false }] };
-  peer.on('connection', c => { c.on('data', m => onMsg(c, m)); c.on('close', () => gone(c.peer)); });
+  isHost = true; pend = [];
+  S = { phase: 'lobby', n: 0, turn: 0, win: 25, wait: [], themes: [...KEYS], host: me, players: [{ id: me, name: P.name, photo: P.photo, score: 0, on: true, rd: false }] };
+  peer.on('connection', c => { c.on('data', m => onMsg(c, m)); c.on('close', () => gone(c)); });
   render();
 }
 function clientUp() {
@@ -64,11 +163,10 @@ function clientUp() {
   try { peer.destroy() } catch (e) {}
   peer = new Peer();
   peer.on('error', () => setTimeout(boot, 1500 + Math.random() * 2000));
-  peer.on('open', id => {
-    me = id;
+  peer.on('open', () => {
     hc = peer.connect(HID, { reliable: true });
-    hc.on('open', () => hc.send({ t: 'join', name }));
-    hc.on('data', m => { S = m.s; render(); });
+    hc.on('open', () => hc.send({ t: 'join', id: me, name: P.name, photo: P.photo, pt: P.t, rk: RK }));
+    hc.on('data', m => { if (m.rk) rkMerge(m.rk); if (m.s) S = m.s; render(); });
     hc.on('close', () => setTimeout(boot, 500 + Math.random() * 2000));
   });
 }
@@ -76,21 +174,31 @@ function clientUp() {
 /* ---------- lógica do jogo (roda no host) ---------- */
 function onMsg(c, m) {
   if (m.t === 'join') {
-    conns[c.peer] = c;
-    let nm = String(m.name || '?').slice(0, 14), k = 2;
-    while (S.players.concat(pend).some(p => p.name === nm)) nm = String(m.name).slice(0, 12) + ' ' + k++;
-    pend.push({ id: c.peer, name: nm }); admit(); send();
-  } else if (m.t === 'r') tg(c.peer);
-  else if (m.t === 'a' && S.phase === 'question' && S.players[S.turn].id === c.peer) resolve(m.i);
+    const id = String(m.id || '').slice(0, 60); if (!id) return;
+    const old = conns[id]; conns[id] = c; c.pid = id;
+    if (old && old !== c) try { old.close() } catch (e) {}
+    const n = String(m.name || '?').slice(0, 14), p = ok(m.photo) ? m.photo : '';
+    rkMerge(m.rk || {}); rkMerge({ [id]: { n, p, w: 0, t: m.pt } });
+    const ex = S.players.find(x => x.id === id), w = pend.find(x => x.id === id);
+    if (ex) { ex.on = true; ex.name = n; ex.photo = p; }
+    else if (w) { w.name = n; w.photo = p; }
+    else { pend.push({ id, name: n, photo: p }); admit(); }
+    send(); bk();
+  } else if (!c.pid) return;
+  else if (m.t === 'r') tg(c.pid);
+  else if (m.t === 'prof') setProf(c.pid, m.n, m.p);
+  else if (m.t === 'a' && S.phase === 'question' && S.players[S.turn].id === c.pid) resolve(m.i);
 }
 function admit() {
   while (S.phase === 'lobby' && pend.length && S.players.length < MAX) {
     const p = pend.shift();
-    S.players.push({ id: p.id, name: p.name, score: 0, on: true, rd: false });
+    S.players.push({ id: p.id, name: p.name, photo: p.photo, score: 0, on: true, rd: false });
   }
 }
-function allReady() { return S.players.length >= 2 && S.players.every(p => p.rd); }
-function gone(id) {
+const allReady = () => S.players.length >= 2 && S.players.every(p => p.rd);
+function gone(c) {
+  const id = c.pid;
+  if (!id || conns[id] !== c) return;
   delete conns[id]; pend = pend.filter(p => p.id !== id);
   const p = S.players.find(x => x.id === id);
   if (p) {
@@ -114,21 +222,34 @@ function tg(id) {
   p.rd = !p.rd;
   allReady() ? begin() : send();
 }
+function cfg() { S.players.forEach(p => p.rd = false); send(); }   // mudou a configuração: todos precisam confirmar de novo
+function tt(k) {
+  if (!isHost || S.phase !== 'lobby') return;
+  const a = S.themes, i = a.indexOf(k);
+  if (i < 0) a.push(k); else if (a.length > 1) a.splice(i, 1);
+  cfg();
+}
+function sw(v) {
+  if (!isHost || S.phase !== 'lobby') return;
+  S.win = Math.max(2, Math.min(200, Math.round(+v) || 25));
+  cfg();
+}
 function begin() {
   S.players.forEach(p => p.score = 0);
   used.clear(); S.winner = null;
-  S.turn = Math.random() * S.players.length | 0;   // começa com um jogador aleatório
+  S.turn = Math.random() * S.players.length | 0;   // começa um jogador aleatório
   ask();
 }
 function ask() {
   let g = 0;
   while (!S.players[S.turn].on && g++ < S.players.length) S.turn = (S.turn + 1) % S.players.length;
-  let pool = Q.map((_, i) => i).filter(i => !used.has(i));
-  if (!pool.length) { used.clear(); pool = Q.map((_, i) => i); }
+  const free = () => Q.map((_, i) => i).filter(i => S.themes.includes(Q[i][4]) && !used.has(i));
+  let pool = free();
+  if (!pool.length) { used.clear(); pool = free(); }
   const i = pool[Math.random() * pool.length | 0];
   used.add(i); cur = Q[i];
   S.phase = 'question'; S.n++; S.res = null;
-  S.q = { t: cur[0], o: cur[1], l: cur[3] };
+  S.q = { t: cur[0], o: cur[1], th: cur[4] };
   clearTimeout(timer);
   timer = setTimeout(() => resolve(-1), TIME * 1000 + 500);
   send();
@@ -136,14 +257,18 @@ function ask() {
 function resolve(i) {
   if (S.phase !== 'question') return;
   clearTimeout(timer);
-  const p = S.players[S.turn], ok = i === cur[2];
-  if (ok) p.score += cur[3];                        // errou = não pontua
+  const p = S.players[S.turn], good = i === cur[2];
+  if (good) p.score += PTS;                         // errou = não pontua
   S.phase = 'reveal';
-  S.res = { pick: i, right: cur[2], ok, pts: cur[3] };
-  if (p.score >= WIN) S.winner = p.name;
-  send();
+  S.res = { pick: i, right: cur[2], ok: good };
+  if (p.score >= S.win) {
+    S.winner = p.id;
+    const r = RK[p.id] || (RK[p.id] = { n: p.name, p: p.photo, w: 0, t: Date.now() });
+    r.w++; sv('sm_rk', JSON.stringify(RK));         // +1 vitória no ranking
+  }
+  send(); if (S.winner) bk();
   timer = setTimeout(() => {
-    if (S.winner) { S.phase = 'end'; send(); timer = setTimeout(lobby, 9000); return; }
+    if (S.winner) { S.phase = 'end'; send(); timer = setTimeout(lobby, 12000); return; }
     S.turn = (S.turn + 1) % S.players.length;
     ask();
   }, 4000);
@@ -156,56 +281,80 @@ function lobby() {
   admit(); send();
 }
 
-/* ---------- ações do jogador ---------- */
-function rd() { isHost ? tg('host') : hc.send({ t: 'r' }); }
+/* ---------- ações ---------- */
+const rd = () => isHost ? tg(me) : hc.send({ t: 'r' });
 function ans(i) {
-  if (isHost) { if (S.players[S.turn].id === 'host') resolve(i); }
+  if (isHost) { if (S.players[S.turn].id === me) resolve(i); }
   else hc.send({ t: 'a', i });
+}
+function confetti() {
+  for (let i = 0; i < 45; i++) {
+    const e = document.createElement('div');
+    e.className = 'cf'; e.textContent = ['🎉', '⭐', '🏆', '🎊'][i % 4];
+    e.style.left = Math.random() * 100 + 'vw';
+    e.style.animationDuration = 2 + Math.random() * 3 + 's';
+    document.body.appendChild(e); setTimeout(() => e.remove(), 5500);
+  }
 }
 
 /* ---------- telas ---------- */
-function board() {
-  return '<div class="card">' + S.players.map((p, i) =>
-    `<div class="pl ${p.on ? '' : 'off'}"><span class="${i === S.turn ? 'turn' : ''}">${i === S.turn ? '▶ ' : ''}${esc(p.name)}${p.id === me ? ' (você)' : ''}</span>` +
-    `<span class="bar"><i style="width:${Math.min(100, p.score / WIN * 100)}%"></i></span><b>${p.score}/${WIN}</b></div>`).join('') + '</div>';
+function board() {   // placar ordenado: quem tem mais pontos no topo, coroa no(s) líder(es)
+  const top = Math.max(...S.players.map(p => p.score)), act = S.players[S.turn] && S.players[S.turn].id;
+  return `<div class="card side"><h3>Placar · meta ${S.win} pts</h3>` + [...S.players].sort((a, b) => b.score - a.score).map(p =>
+    `<div class="pr ${p.id === act && S.phase !== 'end' ? 'act' : ''} ${p.on ? '' : 'off'}">${av(p.name, p.photo)}<div class="grow"><div class="nm">${top > 0 && p.score === top ? '👑 ' : ''}${esc(p.name)}${p.id === me ? ' (você)' : ''}</div><div class="bar"><i style="width:${Math.min(100, p.score / S.win * 100)}%"></i></div></div><b class="sc">${p.score}</b></div>`).join('') + '</div>';
+}
+function rank() {
+  const L = Object.entries(RK).map(([id, x]) => ({ id, ...x })).sort((a, b) => b.w - a.w || a.n.localeCompare(b.n)).slice(0, 10);
+  return '<div class="card"><h3>🏆 Ranking de vitórias</h3>' + (L.length ? L.map((x, i) =>
+    `<div class="row"><span style="width:28px;text-align:center">${i < 3 && x.w > 0 ? ['🥇', '🥈', '🥉'][i] : i + 1 + 'º'}</span>${av(x.n, x.p)}<span class="grow">${esc(x.n)}${x.id === me ? ' (você)' : ''}</span><b style="color:var(--g);font-size:20px">${x.w}</b></div>`).join('') : '<div class="mut">Ninguém jogou ainda.</div>') + '</div>';
 }
 function render() {
   const A = $('#app');
-  let h = '<h1>💰 Show do Milhão</h1>';
-  if (!name) {
-    A.innerHTML = h + `<div class="card"><input id="nm" placeholder="Seu nome" maxlength="14" value="${esc(ld('nm'))}"><button class="gold" onclick="enter()">Entrar</button></div>`;
-    return;
-  }
-  if (!S) { A.innerHTML = h + '<p class="c">Conectando…</p>'; return; }
+  if (editing || !P) { if (!$('#nm')) reg(); return; }
+  if (!S) { A.innerHTML = logo + '<p class="c mut">Conectando…</p>'; return; }
   const mp = S.players.find(p => p.id === me);
+  if (S.phase !== 'end') lastPh = S.phase; else if (lastPh !== 'end') { lastPh = 'end'; confetti(); }
   if (S.phase === 'lobby') {
-    const n = S.players.filter(p => p.rd).length;
-    h += '<div class="card">' + S.players.map(p => `<div class="pl"><span>${esc(p.name)}${p.id === me ? ' (você)' : ''}</span><b>${p.rd ? '✅ PRONTO' : '⏳ aguardando'}</b></div>`).join('') + '</div>';
-    if (S.wait.length) h += `<p class="c"><small>Na fila: ${S.wait.map(esc).join(', ')}</small></p>`;
-    h += mp ? `<button class="gold" onclick="rd()">${mp.rd ? 'Cancelar' : 'PRONTO'}</button>` : '<p class="c">Sala cheia — você entra assim que abrir vaga.</p>';
-    h += `<p class="c"><small>${n}/${S.players.length} prontos · começa quando todos que estão no site apertarem PRONTO (mín. 2, máx. ${MAX}). Vence quem fizer ${WIN} pontos.</small></p>`;
+    const n = S.players.filter(p => p.rd).length, tot = S.themes.reduce((a, k) => a + cnt(k), 0);
+    let h = logo + `<div class="card"><h3>Jogadores (${S.players.length}/${MAX})</h3>` +
+      S.players.map(p => `<div class="row">${av(p.name, p.photo)}<span class="grow">${esc(p.name)}${p.id === me ? ' (você)' : ''}${p.id === S.host ? ' · host' : ''}</span><span class="pill ${p.rd ? 'ok' : ''}">${p.rd ? '✅ PRONTO' : '⏳ aguardando'}</span></div>`).join('') +
+      (S.wait.length ? `<div class="mut">Na fila: ${S.wait.map(esc).join(', ')}</div>` : '') + '</div>';
+    h += `<div class="card"><h3>Configuração da partida ${isHost ? '' : '(só o host muda)'}</h3><div class="chips">` +
+      KEYS.map(k => `<button class="chip ${S.themes.includes(k) ? 'on' : ''}" ${isHost ? `onclick="tt('${k}')"` : 'disabled'}>${TH[k][0]} ${TH[k][1]} · ${cnt(k)}</button>`).join('') +
+      `</div><div class="mut" style="margin:8px 0">${tot} perguntas no sorteio</div>` +
+      (isHost ? `<div class="row"><span class="grow">Pontos para vencer</span><input type="number" min="2" max="200" value="${S.win}" style="width:100px;margin:0" onchange="sw(this.value)"></div>` : `<div><b>Pontos para vencer:</b> ${S.win}</div>`) +
+      `<div class="mut">Cada acerto vale ${PTS} pontos · ${Math.ceil(S.win / PTS)} acertos para vencer</div></div>`;
+    h += mp ? `<button class="btn ${mp.rd ? 'off' : ''}" onclick="rd()">${mp.rd ? 'CANCELAR' : 'PRONTO!'}</button>` : '<p class="c">Sala cheia — você entra quando abrir vaga.</p>';
+    h += `<p class="c mut">${n}/${S.players.length} prontos · a partida começa quando todos apertarem PRONTO (mín. 2).</p>` + rank() + '<button class="lnk" onclick="editProf()">✏️ Editar meu perfil</button>';
     A.innerHTML = h; return;
   }
   if (S.phase === 'end') {
-    A.innerHTML = h + `<div class="card c"><div style="font-size:56px">🏆</div><h2>${esc(S.winner)} venceu!</h2><small>Voltando para a sala em instantes…</small></div>` + board(); return;
+    const w = S.players.find(p => p.id === S.winner) || { name: '?', photo: '' };
+    A.innerHTML = logo + `<div class="card c"><div class="tr">🏆</div><div style="display:flex;justify-content:center">${av(w.name, w.photo, 'big')}</div><h2 style="margin:8px 0">${esc(w.name)} venceu!</h2><div class="mut">Voltando para a sala em instantes…</div></div><div class="game">${board().replace('side', '')}${rank()}</div>`;
+    return;
   }
   if (S.n !== lastN) { lastN = S.n; endAt = Date.now() + TIME * 1000; }
-  const cp = S.players[S.turn], mine = cp.id === me, live = S.phase === 'question';
-  h += board() + `<div class="card"><span class="tm" id="tm"></span><small>Vale ${S.q.l} pt${S.q.l > 1 ? 's' : ''} · vez de <b>${esc(cp.name)}</b></small><div class="q">${esc(S.q.t)}</div>`;
+  const cp = S.players[S.turn], mine = cp.id === me, live = S.phase === 'question', t = TH[S.q.th] || ['❓', ''];
+  let h = logo + `<div class="game"><div class="card"><div class="tag"><span>${t[0]} ${t[1]}</span><span class="who">${av(cp.name, cp.photo, 's')}${mine ? '<b style="color:var(--g)">sua vez!</b>' : 'vez de <b>' + esc(cp.name) + '</b>'} · ${PTS} pts · ⏱ <b id="tm"></b></span></div><div class="timer"><div id="tb"></div></div><div class="qbox">${esc(S.q.t)}</div><div class="opts">`;
   S.q.o.forEach((o, i) => {
     let c = 'opt';
     if (S.res) { if (i === S.res.right) c += ' ok'; else if (i === S.res.pick) c += ' bad'; }
-    h += `<button class="${c}" ${mine && live ? '' : 'disabled'} onclick="ans(${i})">${'ABCD'[i]}) ${esc(o)}</button>`;
+    h += `<button class="${c}" ${mine && live ? '' : 'disabled'} onclick="ans(${i})"><b>${'ABCD'[i]}:</b> ${esc(o)}</button>`;
   });
-  if (S.res) h += `<p><b>${S.res.ok ? '✅ Acertou! +' + S.res.pts : S.res.pick < 0 ? '⏰ Tempo esgotado!' : '❌ Errou!'}</b></p>`;
-  if (!mp) h += '<p><small>Você entra na próxima partida.</small></p>';
-  A.innerHTML = h + '</div>';
+  h += '</div>';
+  if (S.res) h += `<div class="msg">${S.res.ok ? '✅ ' + esc(cp.name) + ' acertou! +' + PTS : S.res.pick < 0 ? '⏰ Tempo esgotado!' : '❌ ' + esc(cp.name) + ' errou!'}</div>`;
+  if (!mp) h += '<p class="mut c">Você entra na próxima partida.</p>';
+  A.innerHTML = h + '</div>' + board() + '</div>';
 }
 setInterval(() => {
-  const t = $('#tm');
-  if (t && S && S.phase === 'question') t.textContent = '⏱ ' + Math.max(0, Math.ceil((endAt - Date.now()) / 1000));
+  const tm = $('#tm'), tb = $('#tb');
+  if (!tm || !S || S.phase !== 'question') return;
+  const l = Math.max(0, (endAt - Date.now()) / 1000);
+  tm.textContent = Math.ceil(l);
+  tb.style.width = l / TIME * 100 + '%';
+  if (l <= 8) tb.style.background = 'linear-gradient(90deg,#ff4d4d,#ff9d2e)';
 }, 250);
-render();
+if (P) boot(); else render();
 </script>
 </body>
 </html>
