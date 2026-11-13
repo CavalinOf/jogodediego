@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Show do Milhão</title>
+<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,sans-serif;background:radial-gradient(circle at top,#1b2a8f,#050a30);color:#fff;min-height:100vh;display:flex;justify-content:center;padding:16px}
+#app{width:100%;max-width:640px}
+h1{text-align:center;color:#ffd24a}
+.card{background:#0b1450cc;border:2px solid #ffd24a55;border-radius:16px;padding:16px;margin:12px 0}
+input,button{font:inherit;padding:12px;border-radius:10px;border:2px solid #ffd24a;width:100%;margin:6px 0}
+input{background:#fff;color:#111}
+button{background:#102080;color:#fff;cursor:pointer;text-align:left}
+button:hover:not(:disabled){background:#1c33c8}
+button:disabled{opacity:.6;cursor:default}
+.gold{background:#ffd24a;color:#111;font-weight:700;text-align:center;font-size:20px}
+.gold:hover:not(:disabled){background:#ffe07a}
+.opt.ok{background:#1a9c3f;opacity:1}.opt.bad{background:#c0222e;opacity:1}
+.pl{display:flex;justify-content:space-between;align-items:center;margin:8px 0}
+.bar{height:8px;background:#fff2;border-radius:6px;overflow:hidden;flex:1;margin:0 10px}
+.bar i{display:block;height:100%;background:#ffd24a}
+.turn{color:#ffd24a;font-weight:700}.off{opacity:.4}
+.q{font-size:20px;margin:8px 0 12px}.tm{float:right;font-weight:700}
+.c{text-align:center}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script src="questions.js"></script>
+<script src="questions2.js"></script>
+<script>
+const $ = s => document.querySelector(s);
+const HID = 'smilhao-global-v1', WIN = 25, TIME = 30, MAX = 4;
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const sv = (k, v) => { try { localStorage.setItem(k, v) } catch (e) {} };
+const ld = k => { try { return localStorage.getItem(k) || '' } catch (e) { return '' } };
+let peer, conns = {}, isHost = false, hc = null, S = null, cur = null, me = '', name = '';
+let used = new Set(), timer, endAt = 0, lastN = -1, pend = [];
+
+/* ---------- conexão: o 1º a abrir vira o "host" técnico; os demais entram nele ---------- */
+function enter() {
+  name = $('#nm').value.trim();
+  if (!name) return alert('Digite seu nome');
+  sv('nm', name); render(); boot();
+}
+function boot() {
+  try { peer && peer.destroy() } catch (e) {}
+  conns = {}; hc = null; S = null; render();
+  peer = new Peer(HID);
+  peer.on('open', hostUp);
+  peer.on('error', e => e.type === 'unavailable-id' ? clientUp() : setTimeout(boot, 2000 + Math.random() * 2000));
+}
+function hostUp() {
+  isHost = true; me = 'host'; pend = [];
+  S = { phase: 'lobby', n: 0, turn: 0, wait: [], players: [{ id: 'host', name, score: 0, on: true, rd: false }] };
+  peer.on('connection', c => { c.on('data', m => onMsg(c, m)); c.on('close', () => gone(c.peer)); });
+  render();
+}
+function clientUp() {
+  isHost = false;
+  try { peer.destroy() } catch (e) {}
+  peer = new Peer();
+  peer.on('error', () => setTimeout(boot, 1500 + Math.random() * 2000));
+  peer.on('open', id => {
+    me = id;
+    hc = peer.connect(HID, { reliable: true });
+    hc.on('open', () => hc.send({ t: 'join', name }));
+    hc.on('data', m => { S = m.s; render(); });
+    hc.on('close', () => setTimeout(boot, 500 + Math.random() * 2000));
+  });
+}
+
+/* ---------- lógica do jogo (roda no host) ---------- */
+function onMsg(c, m) {
+  if (m.t === 'join') {
+    conns[c.peer] = c;
+    let nm = String(m.name || '?').slice(0, 14), k = 2;
+    while (S.players.concat(pend).some(p => p.name === nm)) nm = String(m.name).slice(0, 12) + ' ' + k++;
+    pend.push({ id: c.peer, name: nm }); admit(); send();
+  } else if (m.t === 'r') tg(c.peer);
+  else if (m.t === 'a' && S.phase === 'question' && S.players[S.turn].id === c.peer) resolve(m.i);
+}
+function admit() {
+  while (S.phase === 'lobby' && pend.length && S.players.length < MAX) {
+    const p = pend.shift();
+    S.players.push({ id: p.id, name: p.name, score: 0, on: true, rd: false });
+  }
+}
+function allReady() { return S.players.length >= 2 && S.players.every(p => p.rd); }
+function gone(id) {
+  delete conns[id]; pend = pend.filter(p => p.id !== id);
+  const p = S.players.find(x => x.id === id);
+  if (p) {
+    if (S.phase === 'lobby') { S.players = S.players.filter(x => x !== p); admit(); if (allReady()) return begin(); }
+    else {
+      p.on = false;
+      if (S.players.filter(x => x.on).length < 2) return lobby();
+      if (S.phase === 'question' && S.players[S.turn] === p) return resolve(-1);
+    }
+  }
+  send();
+}
+function send() {
+  S.wait = pend.map(p => p.name);
+  Object.values(conns).forEach(c => c.open && c.send({ s: S }));
+  render();
+}
+function tg(id) {
+  const p = S.players.find(x => x.id === id);
+  if (!p || S.phase !== 'lobby') return;
+  p.rd = !p.rd;
+  allReady() ? begin() : send();
+}
+function begin() {
+  S.players.forEach(p => p.score = 0);
+  used.clear(); S.winner = null;
+  S.turn = Math.random() * S.players.length | 0;   // começa com um jogador aleatório
+  ask();
+}
+function ask() {
+  let g = 0;
+  while (!S.players[S.turn].on && g++ < S.players.length) S.turn = (S.turn + 1) % S.players.length;
+  let pool = Q.map((_, i) => i).filter(i => !used.has(i));
+  if (!pool.length) { used.clear(); pool = Q.map((_, i) => i); }
+  const i = pool[Math.random() * pool.length | 0];
+  used.add(i); cur = Q[i];
+  S.phase = 'question'; S.n++; S.res = null;
+  S.q = { t: cur[0], o: cur[1], l: cur[3] };
+  clearTimeout(timer);
+  timer = setTimeout(() => resolve(-1), TIME * 1000 + 500);
+  send();
+}
+function resolve(i) {
+  if (S.phase !== 'question') return;
+  clearTimeout(timer);
+  const p = S.players[S.turn], ok = i === cur[2];
+  if (ok) p.score += cur[3];                        // errou = não pontua
+  S.phase = 'reveal';
+  S.res = { pick: i, right: cur[2], ok, pts: cur[3] };
+  if (p.score >= WIN) S.winner = p.name;
+  send();
+  timer = setTimeout(() => {
+    if (S.winner) { S.phase = 'end'; send(); timer = setTimeout(lobby, 9000); return; }
+    S.turn = (S.turn + 1) % S.players.length;
+    ask();
+  }, 4000);
+}
+function lobby() {
+  clearTimeout(timer);
+  S.players = S.players.filter(p => p.on);
+  S.players.forEach(p => { p.score = 0; p.rd = false; });
+  S.phase = 'lobby'; S.winner = null; S.turn = 0;
+  admit(); send();
+}
+
+/* ---------- ações do jogador ---------- */
+function rd() { isHost ? tg('host') : hc.send({ t: 'r' }); }
+function ans(i) {
+  if (isHost) { if (S.players[S.turn].id === 'host') resolve(i); }
+  else hc.send({ t: 'a', i });
+}
+
+/* ---------- telas ---------- */
+function board() {
+  return '<div class="card">' + S.players.map((p, i) =>
+    `<div class="pl ${p.on ? '' : 'off'}"><span class="${i === S.turn ? 'turn' : ''}">${i === S.turn ? '▶ ' : ''}${esc(p.name)}${p.id === me ? ' (você)' : ''}</span>` +
+    `<span class="bar"><i style="width:${Math.min(100, p.score / WIN * 100)}%"></i></span><b>${p.score}/${WIN}</b></div>`).join('') + '</div>';
+}
+function render() {
+  const A = $('#app');
+  let h = '<h1>💰 Show do Milhão</h1>';
+  if (!name) {
+    A.innerHTML = h + `<div class="card"><input id="nm" placeholder="Seu nome" maxlength="14" value="${esc(ld('nm'))}"><button class="gold" onclick="enter()">Entrar</button></div>`;
+    return;
+  }
+  if (!S) { A.innerHTML = h + '<p class="c">Conectando…</p>'; return; }
+  const mp = S.players.find(p => p.id === me);
+  if (S.phase === 'lobby') {
+    const n = S.players.filter(p => p.rd).length;
+    h += '<div class="card">' + S.players.map(p => `<div class="pl"><span>${esc(p.name)}${p.id === me ? ' (você)' : ''}</span><b>${p.rd ? '✅ PRONTO' : '⏳ aguardando'}</b></div>`).join('') + '</div>';
+    if (S.wait.length) h += `<p class="c"><small>Na fila: ${S.wait.map(esc).join(', ')}</small></p>`;
+    h += mp ? `<button class="gold" onclick="rd()">${mp.rd ? 'Cancelar' : 'PRONTO'}</button>` : '<p class="c">Sala cheia — você entra assim que abrir vaga.</p>';
+    h += `<p class="c"><small>${n}/${S.players.length} prontos · começa quando todos que estão no site apertarem PRONTO (mín. 2, máx. ${MAX}). Vence quem fizer ${WIN} pontos.</small></p>`;
+    A.innerHTML = h; return;
+  }
+  if (S.phase === 'end') {
+    A.innerHTML = h + `<div class="card c"><div style="font-size:56px">🏆</div><h2>${esc(S.winner)} venceu!</h2><small>Voltando para a sala em instantes…</small></div>` + board(); return;
+  }
+  if (S.n !== lastN) { lastN = S.n; endAt = Date.now() + TIME * 1000; }
+  const cp = S.players[S.turn], mine = cp.id === me, live = S.phase === 'question';
+  h += board() + `<div class="card"><span class="tm" id="tm"></span><small>Vale ${S.q.l} pt${S.q.l > 1 ? 's' : ''} · vez de <b>${esc(cp.name)}</b></small><div class="q">${esc(S.q.t)}</div>`;
+  S.q.o.forEach((o, i) => {
+    let c = 'opt';
+    if (S.res) { if (i === S.res.right) c += ' ok'; else if (i === S.res.pick) c += ' bad'; }
+    h += `<button class="${c}" ${mine && live ? '' : 'disabled'} onclick="ans(${i})">${'ABCD'[i]}) ${esc(o)}</button>`;
+  });
+  if (S.res) h += `<p><b>${S.res.ok ? '✅ Acertou! +' + S.res.pts : S.res.pick < 0 ? '⏰ Tempo esgotado!' : '❌ Errou!'}</b></p>`;
+  if (!mp) h += '<p><small>Você entra na próxima partida.</small></p>';
+  A.innerHTML = h + '</div>';
+}
+setInterval(() => {
+  const t = $('#tm');
+  if (t && S && S.phase === 'question') t.textContent = '⏱ ' + Math.max(0, Math.ceil((endAt - Date.now()) / 1000));
+}, 250);
+render();
+</script>
+</body>
+</html>
