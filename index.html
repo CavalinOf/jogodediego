@@ -66,10 +66,11 @@ input{font:inherit;font-size:18px;text-align:center;border:0;border-radius:14px;
 <div id="app"></div>
 <script src="questions.js"></script>
 <script src="questions2.js"></script>
+<script src="questions3.js"></script>
 <script>
 const $ = s => document.querySelector(s);
 const HID = 'smilhao-global-v1', PTS = 2, TIME = 30, MAX = 4;
-const TH = { geo: ['🌍', 'Geografia'], bra: ['🇧🇷', 'Brasil'], cie: ['🔬', 'Ciências'], his: ['🏛️', 'História'], art: ['🎨', 'Cultura e Artes'], esp: ['⚽', 'Esportes'], mat: ['➗', 'Matemática'], cur: ['💡', 'Curiosidades'] };
+const TH = { geo: ['🌍', 'Geografia'], bra: ['🇧🇷', 'Brasil'], cie: ['🔬', 'Ciências'], his: ['🏛️', 'História'], art: ['🎨', 'Cultura e Artes'], esp: ['⚽', 'Esportes'], mat: ['➗', 'Matemática'], cur: ['💡', 'Curiosidades'], lin: ['🗣️', 'Idiomas'], sig: ['🔠', 'Siglas'] };
 const KEYS = Object.keys(TH), cnt = k => Q.filter(q => q[4] === k).length;
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const sv = (k, v) => { try { localStorage.setItem(k, v) } catch (e) {} };
@@ -81,7 +82,12 @@ const logo = '<div class="logo">SHOW DO MILHÃO<small>ENTRE AMIGOS</small></div>
 
 let P = ld('sm_p'), RK = ld('sm_rk') || {}, me = P ? P.id : '', editing = false, draft = { name: '', photo: '' }, started = false;
 let peer, conns = {}, isHost = false, hc = null, S = null, cur = null;
-let used = new Set(), timer, endAt = 0, lastN = -1, lastPh = '', pend = [];
+// perguntas já sorteadas (salvas no aparelho): não voltam nas próximas partidas até acabar o banco dos temas escolhidos
+const qh = s => { let x = 5381; for (const c of s) x = (x * 33 + c.charCodeAt(0)) >>> 0; return x.toString(36); };
+const qk = q => qh(q[0] + '|' + q[1][q[2]]);
+const SEEN = new Set(ld('sm_seen') || []);
+const svSeen = () => sv('sm_seen', JSON.stringify([...SEEN]));
+let used = new Set(), timer, endAt = 0, lastN = -1, recN = -1, lastPh = '', pend = [];
 
 /* ---------- ranking de vitórias (salvo no aparelho e sincronizado entre quem joga junto) ---------- */
 function rkMerge(b) {
@@ -165,7 +171,7 @@ function clientUp() {
   peer.on('error', () => setTimeout(boot, 1500 + Math.random() * 2000));
   peer.on('open', () => {
     hc = peer.connect(HID, { reliable: true });
-    hc.on('open', () => hc.send({ t: 'join', id: me, name: P.name, photo: P.photo, pt: P.t, rk: RK }));
+    hc.on('open', () => hc.send({ t: 'join', id: me, name: P.name, photo: P.photo, pt: P.t, rk: RK, sn: [...SEEN] }));
     hc.on('data', m => { if (m.rk) rkMerge(m.rk); if (m.s) S = m.s; render(); });
     hc.on('close', () => setTimeout(boot, 500 + Math.random() * 2000));
   });
@@ -179,6 +185,7 @@ function onMsg(c, m) {
     if (old && old !== c) try { old.close() } catch (e) {}
     const n = String(m.name || '?').slice(0, 14), p = ok(m.photo) ? m.photo : '';
     rkMerge(m.rk || {}); rkMerge({ [id]: { n, p, w: 0, t: m.pt } });
+    if (Array.isArray(m.sn)) { m.sn.forEach(x => SEEN.add(String(x))); svSeen(); }
     const ex = S.players.find(x => x.id === id), w = pend.find(x => x.id === id);
     if (ex) { ex.on = true; ex.name = n; ex.photo = p; }
     else if (w) { w.name = n; w.photo = p; }
@@ -243,11 +250,11 @@ function begin() {
 function ask() {
   let g = 0;
   while (!S.players[S.turn].on && g++ < S.players.length) S.turn = (S.turn + 1) % S.players.length;
-  const free = () => Q.map((_, i) => i).filter(i => S.themes.includes(Q[i][4]) && !used.has(i));
+  const free = () => Q.map((_, i) => i).filter(i => S.themes.includes(Q[i][4]) && !SEEN.has(qk(Q[i])));
   let pool = free();
-  if (!pool.length) { used.clear(); pool = free(); }
+  if (!pool.length) { Q.forEach(q => { if (S.themes.includes(q[4])) SEEN.delete(qk(q)); }); pool = free(); }
   const i = pool[Math.random() * pool.length | 0];
-  used.add(i); cur = Q[i];
+  cur = Q[i]; SEEN.add(qk(cur)); svSeen();
   S.phase = 'question'; S.n++; S.res = null;
   S.q = { t: cur[0], o: cur[1], th: cur[4] };
   clearTimeout(timer);
@@ -315,13 +322,13 @@ function render() {
   const mp = S.players.find(p => p.id === me);
   if (S.phase !== 'end') lastPh = S.phase; else if (lastPh !== 'end') { lastPh = 'end'; confetti(); }
   if (S.phase === 'lobby') {
-    const n = S.players.filter(p => p.rd).length, tot = S.themes.reduce((a, k) => a + cnt(k), 0);
+    const n = S.players.filter(p => p.rd).length, tot = Q.filter(q => S.themes.includes(q[4]) && !SEEN.has(qk(q))).length;
     let h = logo + `<div class="card"><h3>Jogadores (${S.players.length}/${MAX})</h3>` +
       S.players.map(p => `<div class="row">${av(p.name, p.photo)}<span class="grow">${esc(p.name)}${p.id === me ? ' (você)' : ''}${p.id === S.host ? ' · host' : ''}</span><span class="pill ${p.rd ? 'ok' : ''}">${p.rd ? '✅ PRONTO' : '⏳ aguardando'}</span></div>`).join('') +
       (S.wait.length ? `<div class="mut">Na fila: ${S.wait.map(esc).join(', ')}</div>` : '') + '</div>';
     h += `<div class="card"><h3>Configuração da partida ${isHost ? '' : '(só o host muda)'}</h3><div class="chips">` +
       KEYS.map(k => `<button class="chip ${S.themes.includes(k) ? 'on' : ''}" ${isHost ? `onclick="tt('${k}')"` : 'disabled'}>${TH[k][0]} ${TH[k][1]} · ${cnt(k)}</button>`).join('') +
-      `</div><div class="mut" style="margin:8px 0">${tot} perguntas no sorteio</div>` +
+      `</div><div class="mut" style="margin:8px 0">${tot} perguntas inéditas no sorteio</div>` +
       (isHost ? `<div class="row"><span class="grow">Pontos para vencer</span><input type="number" min="2" max="200" value="${S.win}" style="width:100px;margin:0" onchange="sw(this.value)"></div>` : `<div><b>Pontos para vencer:</b> ${S.win}</div>`) +
       `<div class="mut">Cada acerto vale ${PTS} pontos · ${Math.ceil(S.win / PTS)} acertos para vencer</div></div>`;
     h += mp ? `<button class="btn ${mp.rd ? 'off' : ''}" onclick="rd()">${mp.rd ? 'CANCELAR' : 'PRONTO!'}</button>` : '<p class="c">Sala cheia — você entra quando abrir vaga.</p>';
@@ -334,6 +341,7 @@ function render() {
     return;
   }
   if (S.n !== lastN) { lastN = S.n; endAt = Date.now() + TIME * 1000; }
+  if (S.res && recN !== S.n) { recN = S.n; SEEN.add(qh(S.q.t + '|' + S.q.o[S.res.right])); svSeen(); }
   const cp = S.players[S.turn], mine = cp.id === me, live = S.phase === 'question', t = TH[S.q.th] || ['❓', ''];
   let h = logo + `<div class="game"><div class="card"><div class="tag"><span>${t[0]} ${t[1]}</span><span class="who">${av(cp.name, cp.photo, 's')}${mine ? '<b style="color:var(--g)">sua vez!</b>' : 'vez de <b>' + esc(cp.name) + '</b>'} · ${PTS} pts · ⏱ <b id="tm"></b></span></div><div class="timer"><div id="tb"></div></div><div class="qbox">${esc(S.q.t)}</div><div class="opts">`;
   S.q.o.forEach((o, i) => {
