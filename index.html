@@ -67,10 +67,11 @@ input{font:inherit;font-size:18px;text-align:center;border:0;border-radius:14px;
 <script src="questions.js"></script>
 <script src="questions2.js"></script>
 <script src="questions3.js"></script>
+<script src="questions4.js"></script>
 <script>
 const $ = s => document.querySelector(s);
 const HID = 'smilhao-global-v1', PTS = 2, TIME = 30, MAX = 4;
-const TH = { geo: ['🌍', 'Geografia'], bra: ['🇧🇷', 'Brasil'], cie: ['🔬', 'Ciências'], his: ['🏛️', 'História'], art: ['🎨', 'Cultura e Artes'], esp: ['⚽', 'Esportes'], mat: ['➗', 'Matemática'], cur: ['💡', 'Curiosidades'], lin: ['🗣️', 'Idiomas'], sig: ['🔠', 'Siglas'] };
+const TH = { geo: ['🌍', 'Geografia'], bra: ['🇧🇷', 'Brasil'], cie: ['🔬', 'Ciências'], his: ['🏛️', 'História'], art: ['🎨', 'Cultura e Artes'], esp: ['⚽', 'Esportes'], mat: ['➗', 'Matemática'], cur: ['💡', 'Curiosidades'], lin: ['🗣️', 'Idiomas'], sig: ['🔠', 'Siglas'], atu: ['📰', 'Atualidades e Datas'] };
 const KEYS = Object.keys(TH), cnt = k => Q.filter(q => q[4] === k).length;
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const sv = (k, v) => { try { localStorage.setItem(k, v) } catch (e) {} };
